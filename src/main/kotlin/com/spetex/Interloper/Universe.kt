@@ -1,6 +1,7 @@
 package com.spetex.Interloper
 
 import arrow.core.Either
+import kotlin.math.sqrt
 
 const val GRAVITATIONAL_CONSTANT = 6.674e-11
 
@@ -48,7 +49,7 @@ class Universe {
         val squaredX: Double = (coords1[0] - coords2[0]) * (coords1[0] - coords2[0])
         val squaredY: Double = (coords1[1] - coords2[1]) * (coords1[1] - coords2[1])
         val squaredZ: Double = (coords1[2] - coords2[2]) * (coords1[2] - coords2[2])
-        return squaredX + squaredY + squaredZ
+        return sqrt(squaredX + squaredY + squaredZ)
     }
 
 
