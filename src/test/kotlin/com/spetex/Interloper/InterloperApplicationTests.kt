@@ -49,16 +49,41 @@ class InterloperApplicationTests {
 	}
 
 	@Test
-	fun celestialMovesInDirectionOfGravitationalPull() {
-		val sun = universe.spawn(1.989e30)
-		sun.coordinates = listOf(100.0, 100.0, 100.0)
-		val earth = universe.spawn(5.972e24)
-		earth.coordinates = listOf(149597870.0, 100.0, 100.0)
+	fun getDistanceFromReturnsDistanceOfItselfToTargetCelestial() {
+		val celestial1 = universe
+			.spawn(0.0)
+			.moveTo(listOf(0.0, 0.0, 100.0))
 
-		while (earth.coordinates[0] > 149597869.0) {
-			universe.tick()
-		}
+		val celestial2 = universe
+			.spawn(0.0)
+			.moveTo(listOf(0.0, 0.0, 0.0))
 
+		assert(celestial1.getDistanceFrom(celestial2) == 100.0)
 	}
 
+	@Test
+	fun getPullForceOfReturnsGravitationalPullOfAnotherCelestial() {
+		val sun = universe
+			.spawn(1.989e30)
+			.moveTo(listOf(100.0, 0.0, 0.0))
+
+		val earth = universe
+			.spawn(5.972e24)
+			.moveTo(listOf(1.496e11, 0.0, 0.0))
+
+		assert(earth.getPullForceOf(sun) == listOf(-3.5422368605936565E22, 0.0, 0.0))
+	}
+
+	@Test
+	fun getGravityPullReturnsFinalVectorOfCelestial() {
+		val sun = universe
+			.spawn(1.989e30)
+			.moveTo(listOf(100.0, 0.0, 0.0))
+
+		val earth = universe
+			.spawn(5.972e24)
+			.moveTo(listOf(1.496e11, 0.0, 0.0))
+
+		assert(earth.getGravityPull() == listOf(-3.5422368605936565E22, 0.0, 0.0))
+	}
 }
