@@ -23,7 +23,7 @@ class Universe {
 
     fun getInfluentialCelestials(celestial: Celestial): List<Celestial> {
         return celestials
-            .filter { it != celestial }
+            .filter { it.id != celestial.id }
     }
 
     fun tick() {

@@ -65,25 +65,80 @@ class InterloperApplicationTests {
 	fun getPullForceOfReturnsGravitationalPullOfAnotherCelestial() {
 		val sun = universe
 			.spawn(1.989e30)
-			.moveTo(listOf(100.0, 0.0, 0.0))
+			.moveTo(listOf(1.496e11, 0.0, 0.0))
+
+		val earth = universe
+			.spawn(5.972e24)
+			.moveTo(listOf(0.0, 0.0, 0.0))
+
+		assert(earth.getPullForceOf(sun) == listOf(3.5422368558580456E22, 0.0, 0.0))
+	}
+
+	@Test
+	fun getPullForceOfReturnsGravitationalPullOfAnotherCelestialReversed() {
+		val sun = universe
+			.spawn(1.989e30)
+			.moveTo(listOf(0.0, 0.0, 0.0))
 
 		val earth = universe
 			.spawn(5.972e24)
 			.moveTo(listOf(1.496e11, 0.0, 0.0))
 
-		assert(earth.getPullForceOf(sun) == listOf(-3.5422368605936565E22, 0.0, 0.0))
+		assert(earth.getPullForceOf(sun) == listOf(-3.5422368558580456E22, 0.0, 0.0))
 	}
 
 	@Test
 	fun getGravityPullReturnsFinalVectorOfCelestial() {
 		val sun = universe
 			.spawn(1.989e30)
-			.moveTo(listOf(100.0, 0.0, 0.0))
+			.moveTo(listOf(0.0, 0.0, 0.0))
 
 		val earth = universe
 			.spawn(5.972e24)
 			.moveTo(listOf(1.496e11, 0.0, 0.0))
 
-		assert(earth.getGravityPull() == listOf(-3.5422368605936565E22, 0.0, 0.0))
+		assert(earth.getPullForceOf(sun) == listOf(-3.5422368558580456E22, 0.0, 0.0))
+		assert(earth.getForceVector() == listOf(-3.5422368558580456E22, 0.0, 0.0))
+	}
+
+	@Test
+	fun accelerateIncreasesSpeedInDirection() {
+		assert(universe
+			.spawn(0.0)
+			.moveTo(listOf(0.0, 0.0, 0.0))
+			.accelerate(listOf(10.0, 10.0, 10.0))
+			.move()
+			.move()
+			.coordinates == listOf(20.0, 20.0, 20.0)
+		)
+	}
+
+	@Test
+	fun accelerateDecreasesSpeedInDirection() {
+		assert(universe
+			.spawn(0.0)
+			.moveTo(listOf(0.0, 0.0, 0.0))
+			.accelerate(listOf(10.0, 10.0, 10.0))
+			.move()
+			.move()
+			.accelerate(listOf(-10.0, -10.0, -10.0))
+			.move()
+			.move()
+			.coordinates == listOf(20.0, 20.0, 20.0)
+		)
+	}
+
+	@Test
+	fun earthAcceleratesTowardsSun() {
+	    universe
+			.spawn(1.989e30)
+			.moveTo(listOf(0.0, 0.0, 0.0))
+
+		assert(universe
+			.spawn(5.972e24)
+			.moveTo(listOf(1.496e11, 0.0, 0.0))
+			.nextState()
+			.coordinates[0] < 1.496e11)
+
 	}
 }
