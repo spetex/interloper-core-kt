@@ -7,14 +7,13 @@ import kotlin.math.sqrt
 
 class Celestial(
     val mass: Double,
-    val universe: Universe,
     val id: String = UUID.randomUUID().toString(),
     val coordinates: Vector = listOf(0.0, 0.0, 0.0),
     val speed: Vector = listOf(0.0, 0.0, 0.0)
 ) {
 
     fun moveBy(vector: Vector): Celestial {
-        return Celestial(mass, universe, id, listOf(
+        return Celestial(mass, id, listOf(
             coordinates[0] + vector[0],
             coordinates[1] + vector[1],
             coordinates[2] + vector[2],
@@ -22,7 +21,7 @@ class Celestial(
     }
 
     fun accelerate(vector: Vector): Celestial {
-        return Celestial(mass, universe, id, coordinates, listOf(
+        return Celestial(mass, id, coordinates, listOf(
             speed[0] + vector[0],
             speed[1] + vector[1],
             speed[2] + vector[2],
@@ -30,26 +29,26 @@ class Celestial(
     }
 
     fun moveTo(position: Vector): Celestial {
-        return Celestial(mass, universe, id, position, speed)
+        return Celestial(mass, id, position, speed)
     }
 
     fun move(): Celestial {
-        return Celestial(mass, universe, id, listOf(
+        return Celestial(mass, id, listOf(
             coordinates[0] + speed[0],
             coordinates[1] + speed[1],
             coordinates[2] + speed[2],
         ), speed)
     }
 
-    fun nextState(): Celestial {
-        return accelerate(getCurrentAcceleration()).move()
+    fun nextState(universe: Universe): Celestial {
+        return accelerate(getCurrentAcceleration(universe)).move()
     }
 
-    fun getCurrentAcceleration(): Vector {
-        return getForceVector().map { it / mass }
+    fun getCurrentAcceleration(universe: Universe): Vector {
+        return getForceVector(universe).map { it / mass }
     }
 
-    fun getForceVector(): Vector {
+    fun getForceVector(universe: Universe): Vector {
         return universe
             .getInfluentialCelestials(this)
             .map { getPullForceOf(it) }

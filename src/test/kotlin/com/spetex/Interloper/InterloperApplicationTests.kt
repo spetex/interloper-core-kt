@@ -5,6 +5,11 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
 
+const val MASS_OF_EARTH = 5.972e24
+const val MASS_OF_SUN = 1.989e30
+const val AU = 1.496e11
+const val EARTH_SPEED_RELATIVE_TO_SUN = 29722.0
+
 @SpringBootTest
 class InterloperApplicationTests {
 	lateinit var universe: Universe;
@@ -15,18 +20,14 @@ class InterloperApplicationTests {
 
 	@Test
 	fun universeSpawnsAndHoldsCelestials() {
-		universe.spawn(0.0)
-		universe.spawn(0.0)
-		universe.spawn(0.0)
-		universe.spawn(0.0)
-		universe.spawn(0.0)
-		assert(universe.celestialCount() == 5)
-	}
-
-	@Test
-	fun celestialKnowsWhatUniverseItBelongTo() {
-		val celestial1 = universe.spawn(1.0)
-		assert(celestial1.universe == universe)
+		assert(universe
+			.spawn(Celestial(0.0))
+			.spawn(Celestial(0.0))
+			.spawn(Celestial(0.0))
+			.spawn(Celestial(0.0))
+			.spawn(Celestial(0.0))
+			.celestialCount() == 5
+		)
 	}
 
 	@Test
@@ -36,75 +37,63 @@ class InterloperApplicationTests {
 
 	@Test
 	fun getCelestialReturnsRightWhenAskedAboutExistingCelestial() {
-		val celestial1 = universe.spawn(1.0)
-		assert(universe.getCelestial(celestial1.id).isRight())
+		assert(universe.spawn(Celestial(1.0, id = "rock")).getCelestial("rock").isRight())
 	}
 
 	@Test
 	fun getCelestialReturnsCelestialBasedOnId() {
-		val celestial1 = universe.spawn(0.1)
-		universe.getCelestial(celestial1.id).getOrHandle {
-			assert(it.equals(celestial1) )
-		}
+		assert(universe
+			.spawn(Celestial(0.1, id = "rock"))
+			.getCelestial("rock")
+			.getOrHandle { Celestial(0.0) }
+			.id == "rock"
+		)
 	}
 
 	@Test
 	fun getDistanceFromReturnsDistanceOfItselfToTargetCelestial() {
-		val celestial1 = universe
-			.spawn(0.0)
-			.moveTo(listOf(0.0, 0.0, 100.0))
-
-		val celestial2 = universe
-			.spawn(0.0)
-			.moveTo(listOf(0.0, 0.0, 0.0))
-
-		assert(celestial1.getDistanceFrom(celestial2) == 100.0)
+		assert(
+			Celestial(0.0, coordinates = listOf(0.0, 0.0, 0.0))
+				.getDistanceFrom(
+					Celestial(0.0, coordinates = listOf(100.0, 0.0, 0.0))
+				) == 100.0
+		)
 	}
 
 	@Test
 	fun getPullForceOfReturnsGravitationalPullOfAnotherCelestial() {
-		val sun = universe
-			.spawn(1.989e30)
-			.moveTo(listOf(1.496e11, 0.0, 0.0))
-
-		val earth = universe
-			.spawn(5.972e24)
-			.moveTo(listOf(0.0, 0.0, 0.0))
-
-		assert(earth.getPullForceOf(sun) == listOf(3.5422368558580456E22, 0.0, 0.0))
+		assert(
+			Celestial(MASS_OF_EARTH)
+				.getPullForceOf(
+					Celestial(MASS_OF_SUN, coordinates = listOf(AU, 0.0, 0.0))
+				) == listOf(3.5422368558580456E22, 0.0, 0.0)
+		)
 	}
 
 	@Test
 	fun getPullForceOfReturnsGravitationalPullOfAnotherCelestialReversed() {
-		val sun = universe
-			.spawn(1.989e30)
-			.moveTo(listOf(0.0, 0.0, 0.0))
-
-		val earth = universe
-			.spawn(5.972e24)
-			.moveTo(listOf(1.496e11, 0.0, 0.0))
-
-		assert(earth.getPullForceOf(sun) == listOf(-3.5422368558580456E22, 0.0, 0.0))
+		assert(
+			Celestial(MASS_OF_EARTH, coordinates = listOf(AU, 0.0, 0.0))
+				.getPullForceOf(
+					Celestial(MASS_OF_SUN)
+				) == listOf(-3.5422368558580456E22, 0.0, 0.0)
+		)
 	}
 
 	@Test
 	fun getGravityPullReturnsFinalVectorOfCelestial() {
-		val sun = universe
-			.spawn(1.989e30)
-			.moveTo(listOf(0.0, 0.0, 0.0))
+        val earth = Celestial(MASS_OF_EARTH, coordinates = listOf(AU, 0.0, 0.0))
 
-		val earth = universe
-			.spawn(5.972e24)
-			.moveTo(listOf(1.496e11, 0.0, 0.0))
-
-		assert(earth.getPullForceOf(sun) == listOf(-3.5422368558580456E22, 0.0, 0.0))
-		assert(earth.getForceVector() == listOf(-3.5422368558580456E22, 0.0, 0.0))
+		assert(earth.getForceVector(
+			universe
+				.spawn(earth)
+				.spawn(Celestial(MASS_OF_SUN, coordinates = listOf(0.0, 0.0, 0.0)))
+		) == listOf(-3.5422368558580456E22, 0.0, 0.0))
 	}
 
 	@Test
 	fun accelerateIncreasesSpeedInDirection() {
-		assert(universe
-			.spawn(0.0)
+		assert(Celestial(MASS_OF_EARTH)
 			.moveTo(listOf(0.0, 0.0, 0.0))
 			.accelerate(listOf(10.0, 10.0, 10.0))
 			.move()
@@ -115,8 +104,7 @@ class InterloperApplicationTests {
 
 	@Test
 	fun accelerateDecreasesSpeedInDirection() {
-		assert(universe
-			.spawn(0.0)
+		assert(Celestial(MASS_OF_EARTH)
 			.moveTo(listOf(0.0, 0.0, 0.0))
 			.accelerate(listOf(10.0, 10.0, 10.0))
 			.move()
@@ -129,16 +117,46 @@ class InterloperApplicationTests {
 	}
 
 	@Test
-	fun earthAcceleratesTowardsSun() {
-	    universe
-			.spawn(1.989e30)
-			.moveTo(listOf(0.0, 0.0, 0.0))
+	fun earthMovesTowardsSun() {
+		val earth = Celestial(MASS_OF_EARTH, coordinates = listOf(AU, 0.0, 0.0))
+        assert(earth.nextState(
+			universe
+				.spawn(Celestial(MASS_OF_SUN))
+				.spawn(earth)
+		).coordinates[0] < AU)
+	}
 
+	@Test
+	fun earthOrbitsSun() {
+		var earth = Celestial(
+			MASS_OF_EARTH,
+			coordinates = listOf(AU, 0.0, 0.0),
+			speed = listOf(0.0,
+			EARTH_SPEED_RELATIVE_TO_SUN, 0.0)
+		)
+		universe = universe
+			.spawn(Celestial(MASS_OF_SUN))
+			.spawn(earth)
+
+		var i = 0
+		// go from zero back to zero on y coordinate is half revolution
+		while (earth.coordinates[1] >= 0) {
+			i++
+			earth = earth.nextState(universe)
+		}
+		assert(i >= 15672908) // half year in seconds
+	}
+
+	@Test
+	fun universeNextStateUpdatesAllCelestials() {
 		assert(universe
-			.spawn(5.972e24)
-			.moveTo(listOf(1.496e11, 0.0, 0.0))
+			.spawn(Celestial(10.0, id = "rock", speed = listOf(0.0, 10.0, 0.0)))
+			.spawn(Celestial(10.0, id = "ice", coordinates = listOf(10000000.0, 0.0, 0.0)))
 			.nextState()
-			.coordinates[0] < 1.496e11)
-
+			.nextState()
+			.nextState()
+			.getCelestial("rock")
+			.getOrHandle{ Celestial(0.0) }
+			.coordinates[1] == 30.0)
 	}
 }
