@@ -1,13 +1,16 @@
 package com.spetex.Interloper
 
+import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
 
 const val MASS_OF_EARTH = 5.972e24
+const val MASS_OF_MOON = 7.348e22
 const val MASS_OF_SUN = 1.989e30
 const val AU = 1.496e11
+const val LUNAR_DISTANCE = 3.844e8
 const val EARTH_SPEED_RELATIVE_TO_SUN = 29722.0
 
 @SpringBootTest
@@ -128,23 +131,39 @@ class InterloperApplicationTests {
 
 	@Test
 	fun earthOrbitsSun() {
-		var earth = Celestial(
-			MASS_OF_EARTH,
-			coordinates = listOf(AU, 0.0, 0.0),
-			speed = listOf(0.0,
-			EARTH_SPEED_RELATIVE_TO_SUN, 0.0)
-		)
 		universe = universe
-			.spawn(Celestial(MASS_OF_SUN))
-			.spawn(earth)
+			.spawn(Celestial(
+				MASS_OF_SUN,
+				id = "sun"
+			))
+			.spawn(Celestial(
+				MASS_OF_EARTH,
+				id = "earth",
+				coordinates = listOf(AU, 0.0, 0.0),
+				speed = listOf(0.0, EARTH_SPEED_RELATIVE_TO_SUN, 0.0)
+			))
+			.spawn(Celestial(
+				MASS_OF_MOON,
+				id = "moon",
+				coordinates = listOf(AU + LUNAR_DISTANCE, 0.0, 0.0),
+				speed = listOf(0.0, EARTH_SPEED_RELATIVE_TO_SUN + 1023.0, 0.0)
+			))
 
 		var i = 0
-		// go from zero back to zero on y coordinate is half revolution
-		while (earth.coordinates[1] >= 0) {
+
+        // simulate first half of revolution
+		while (universe.getCelestial("earth").getOrElse { Celestial(0.0) }.coordinates[1] >= 0.0) {
 			i++
-			earth = earth.nextState(universe)
+			universe = universe.nextState()
 		}
-		assert(i >= 15672908) // half year in seconds
+		// simulate second half of revolution
+		while (universe.getCelestial("earth").getOrElse { Celestial(0.0) }.coordinates[1] < 0.0) {
+			i++
+			universe = universe.nextState()
+		}
+		val moonDistance = universe.getCelestial("earth").getOrElse { Celestial(0.0) }.getDistanceFrom(
+			universe.getCelestial("moon").getOrElse { Celestial(0.0) }
+		)
 	}
 
 	@Test
